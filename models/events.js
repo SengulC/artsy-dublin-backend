@@ -11,7 +11,7 @@ const pool = mariadb.createPool(dbconfig);
 
 // get all events
 async function get() {
-    const [results] = await pool.query(`SELECT * FROM events`);
+    const [results] = await pool.query(`SELECT * FROM genres`);
     return results;
 }
 
