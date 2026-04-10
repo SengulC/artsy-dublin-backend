@@ -62,9 +62,9 @@ async function main() {
     conn = await pool.getConnection();
 
     // Query the table to get all rows
-    const rows = await conn.query("SELECT * FROM genres");
-    console.log("Table contents:");
-    console.table(rows);
+    // const rows = await conn.query("SE  LECT * FROM genres");
+    // console.log("Table contents:");
+    // console.table(rows);
 
   } catch (err) {
     console.error("Error:", err);

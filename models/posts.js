@@ -24,7 +24,7 @@ class postsModel {
 //         try{
 //             que = await pool.getConnection();
 
-//             const [results] = await que.query(`
+//             const results = await que.query(`
 //                 SELECT posts.postId, posts.content, posts.createdAt, users.username,
 //                        events.eventId, events.title, eventAttended.rating,
 //                        posts.likeCount, posts.commentCount

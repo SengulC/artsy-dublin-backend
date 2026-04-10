@@ -21,20 +21,20 @@ async function get (req, res) {
 //     res.json(results);
 // }
 
-// async function updateByType (req, res) {
-//     const eventType = req.params.typename;
-//     // update events, do an API call to populate the db!
-//     let results;
-//     if (eventType == 'Film-Showing')
-//         results = await model.fetchFilmsAndPopulate();
-//     else
-//         results = await model.fetchLiveEventsAndPopulate(eventType);
-//     if (!results)
-//         return res.status(404).send("That event type does not exist. Try: 'Arts-&-Theater', 'Music', 'Film-Showing'");
-//     // then call all events from the db
-//     // const results = await model.get();
-//     res.json(results); // like this, it returns the result of that fetch, not the entirety of the updated database.
-// }
+async function updateByType (req, res) {
+    const eventType = req.params.typename;
+    // update events, do an API call to populate the db!
+    let results;
+    if (eventType == 'Film-Showing')
+        results = await model.fetchFilmsAndPopulate();
+    else
+        results = await model.fetchLiveEventsAndPopulate(eventType);
+    if (!results)
+        return res.status(404).send("That event type does not exist. Try: 'Arts-&-Theater', 'Music', 'Film-Showing'");
+    // then call all events from the db
+    // const results = await model.get();
+    res.json(results); // like this, it returns the result of that fetch, not the entirety of the updated database.
+}
 
 // async function getEventsByGenre(req, res) {
 //     const genreName = req.params.genrename;
@@ -63,7 +63,7 @@ async function get (req, res) {
 
 module.exports = {
     get,
-    // updateByType,
+    updateByType,
     // getEventById,
     // getEventsByType,
     // getEventsByGenre
