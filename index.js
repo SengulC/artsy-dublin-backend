@@ -37,8 +37,8 @@ app.use("/events", eventsRoute);
 // const usersRoute = require("./routes/users")
 // app.use("/users", usersRoute);
 
-// const postsRoute = require("./routes/posts")
-// app.use("/posts", postsRoute);
+const postsRoute = require("./routes/posts")
+app.use("/posts", postsRoute);
 
 // Set EJS as the templating engine
 app.set('view engine', 'ejs');

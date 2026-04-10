@@ -17,7 +17,7 @@ class postsController{
             res.json(allPosts);
         } catch (err) {
             console.error(err); 
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: err });
         }
     }
 
@@ -30,7 +30,7 @@ class postsController{
             res.json(allPosts);
         } catch (err) {
             console.error(err); 
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: err });
         }
     }
 
@@ -43,7 +43,7 @@ class postsController{
             res.json(allPosts);
         } catch (err) {
             console.error(err); 
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: err });
         }
     }
 
@@ -57,7 +57,7 @@ class postsController{
                 res.status(404).json({ error: 'Post not found' });
             } else {
                 console.error(err);
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: err });
             }
         }
     }
@@ -70,7 +70,7 @@ class postsController{
             res.json(attendanceStatus); // null if not attended, otherwise return {eventAttendId, rating}
         } catch (err) {
             console.error(err);
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: err });
         }
     }
 
@@ -91,7 +91,7 @@ class postsController{
                 res.status(409).json({ error: 'Already attended' });
             } else {
                 console.error(err);
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: err });
             }
         }
     }
@@ -112,7 +112,7 @@ class postsController{
         return res.status(400).json({ error: err.message });
     }
     console.error(err);
-    res.status(500).json({ error:'Server error' });
+    res.status(500).json({ error:err });
         }
     }
 
@@ -132,7 +132,7 @@ class postsController{
         return res.status(400).json({ error: err.message });
     }
     console.error(err);
-    res.status(500).json({ error:'Server error' });
+    res.status(500).json({ error:err });
        }
     }
 
@@ -144,7 +144,7 @@ class postsController{
             res.json({ liked }); // true = liked, false = unliked
         } catch (err) {
             console.error(err);
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: err });
         }
     }
 
@@ -160,7 +160,7 @@ class postsController{
             if (err.message === 'record-not-found') {
                 res.status(404).json({ error: 'Attendance record not found' });
             } else {
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: err });
             }
         }
     }
@@ -179,7 +179,7 @@ class postsController{
                 res.status(403).json({ error: 'You can only edit your own posts' });
             } else {
                 console.error(err);
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: err });
             }
         }
     }
@@ -197,7 +197,7 @@ class postsController{
                 res.status(403).json({ error: 'You can only delete your own posts' });
             } else {
                 console.error(err);
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: err });
             }
         }
     }
@@ -211,7 +211,7 @@ class postsController{
             if (err.message === 'record-not-found') {
                 res.status(404).json({ error: 'Attendance record not found' });
             } else {
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: err });
             }
         }
     }

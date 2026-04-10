@@ -5,8 +5,8 @@ const dotenv = require('dotenv').config({path: path.join(__dirname, '..', '.env'
 const axios = require('axios');
 
 // Import mysql and configure file
-const dbconfig = require("../utils/dbconfig");
-// const mysql = require("mysql2/promise");
+const dbconfig = require("../dbconfig");
+const mariadb = require('mariadb');
 
 // userModel defines all the functions we need to use related to users
 class usersModel {
