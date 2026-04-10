@@ -13,6 +13,6 @@ router.get("/genre/:genrename", controller.getEventsByGenre); // genrenames, e.g
 router.get("/update/:typename", controller.updateByType); // typenames: "Arts-&-Theater", "Music" (ticketmaster) "Film-Showing" (tmdb)
 
 // // GET SINGLE EVENT DATA
-// router.get("/event/:eventid", controller.getEventById);
+router.get("/event/:eventid", controller.getEventById);
 
 module.exports = router;

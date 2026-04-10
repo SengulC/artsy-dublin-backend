@@ -46,25 +46,25 @@ async function getEventsByGenre(req, res) {
     res.json(results); 
 }
 
-// async function getEventById (req, res) {
-//     const id = req.params.eventid;
-//     const eventDetail = await model.getEventById(id);
-//     if(!eventDetail) return res.status(404).send('Event not found');
+async function getEventById (req, res) {
+    const id = req.params.eventid;
+    const eventDetail = await model.getEventById(id);
+    if(!eventDetail) return res.status(404).send('Event not found');
 
-//     const eventRepeats = await model.getEventRepeatsById(id);
+    const eventRepeats = await model.getEventRepeatsById(id);
 
-//     const userId = 1; // TODO: const userId = req.session?.userId
-//     const attendance = userId
-//         ? await postsModel.getAttendanceStatus(userId, id)
-//         : null;
+    // const userId = 1; // TODO: const userId = req.session?.userId
+    // const attendance = userId
+    //     ? await postsModel.getAttendanceStatus(userId, id)
+    //     : null;
 
-//     res.json({ ...eventDetail, eventRepeats, attendance }); // attendance: null if not logged in / not attended, otherwise { eventAttendId, rating }
-// }
+    res.json({ ...eventDetail, eventRepeats /*, attendance */ }); // attendance: null if not logged in / not attended, otherwise { eventAttendId, rating }
+}
 
 module.exports = {
     get,
     updateByType,
-    // getEventById,
+    getEventById,
     getEventsByType,
     getEventsByGenre
 };

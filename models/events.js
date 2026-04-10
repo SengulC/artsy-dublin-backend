@@ -163,35 +163,36 @@ async function fetchLiveEventsAndPopulate(typeName) {
 }
 
 // get event details by its id
-// async function getEventById(eventId) {
-//     const results = await pool.query(
-//         `
-//         SELECT  
-//             e.eventId, 
-//             e.title, 
-//             e.url, 
-//             e.description, 
-//             e.venue, 
-//             e.startDateTime, 
-//             e.posterUrl, 
-//             z.eventTypeName, 
-//             JSON_ARRAYAGG(g.name) AS genres 
-//         FROM events e 
-//         LEFT JOIN eventtypes z
-//             ON 	e.eventTypeId = z.eventTypeId
-//         LEFT JOIN eventtags t 
-//             ON e.eventId = t.eventId 
-//         LEFT JOIN genres g 
-//             ON t.genreId = g.genreId 
-//         WHERE e.eventId = ? 
-//         GROUP BY 
-//             e.eventId, e.title, e.url, e.description, 
-//             e.venue, e.startDateTime, e.posterUrl, z.eventTypeName 
-//         `, [eventId]
-//     );
+async function getEventById(eventId) {
+    let results = await pool.query(
+        `
+        SELECT  
+            e.eventId, 
+            e.title, 
+            e.url, 
+            e.description, 
+            e.venue, 
+            e.startDateTime, 
+            e.posterUrl, 
+            z.eventTypeName, 
+            JSON_ARRAYAGG(g.name) AS genres 
+        FROM events e 
+        LEFT JOIN eventtypes z
+            ON 	e.eventTypeId = z.eventTypeId
+        LEFT JOIN eventtags t 
+            ON e.eventId = t.eventId 
+        LEFT JOIN genres g 
+            ON t.genreId = g.genreId 
+        WHERE e.eventId = ? 
+        GROUP BY 
+            e.eventId, e.title, e.url, e.description, 
+            e.venue, e.startDateTime, e.posterUrl, z.eventTypeName 
+        `, [eventId]
+    );
 
-//     return results[0] || null;
-// }
+    results = results ? results[0] : null;
+    return results;
+}
 
 // TODO: MERGE INTO ABOVE get event repeats
 async function getEventRepeatsById(eventId) {
@@ -264,7 +265,7 @@ module.exports = {
     get,
     fetchLiveEventsAndPopulate,
     fetchFilmsAndPopulate,
-    // getEventById,
+    getEventById,
     getEventRepeatsById,
     getEventsByType,
     getEventsByGenre
