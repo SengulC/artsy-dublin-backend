@@ -64,7 +64,7 @@ async function main() {
     // Query the table to get all rows
     // const rows = await conn.query("SE  LECT * FROM genres");
     // console.log("Table contents:");
-    // console.table(rows);
+    // console.table(rows);bruh
 
   } catch (err) {
     console.error("Error:", err);

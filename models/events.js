@@ -76,8 +76,6 @@ async function fetchFilmsAndPopulate() {
             }
         }
     }
-
-    console.log(filmsData);
     
     return filmsData;
 }
@@ -90,12 +88,15 @@ async function fetchLiveEventsAndPopulate(typeName) {
     let eventTypeId = await pool.query(
         `SELECT eventTypeId FROM eventtypes
 	    WHERE eventTypeName = ?`, typeName);
+
     
-    if (eventTypeId[0][0])
-        eventTypeId = eventTypeId[0][0].eventTypeId;
+    if (eventTypeId[0])
+        eventTypeId = eventTypeId[0].eventTypeId;
     else {
         return;
     }
+
+    console.log(eventTypeId);
 
     const theatreEvents = await ticketmaster_api.get('events', {
         params: {
@@ -162,35 +163,35 @@ async function fetchLiveEventsAndPopulate(typeName) {
 }
 
 // get event details by its id
-async function getEventById(eventId) {
-    const results = await pool.query(
-        `
-        SELECT  
-            e.eventId, 
-            e.title, 
-            e.url, 
-            e.description, 
-            e.venue, 
-            e.startDateTime, 
-            e.posterUrl, 
-            z.eventTypeName, 
-            JSON_ARRAYAGG(g.name) AS genres 
-        FROM events e 
-        LEFT JOIN eventtypes z
-            ON 	e.eventTypeId = z.eventTypeId
-        LEFT JOIN eventtags t 
-            ON e.eventId = t.eventId 
-        LEFT JOIN genres g 
-            ON t.genreId = g.genreId 
-        WHERE e.eventId = ? 
-        GROUP BY 
-            e.eventId, e.title, e.url, e.description, 
-            e.venue, e.startDateTime, e.posterUrl, z.eventTypeName 
-        `, [eventId]
-    );
+// async function getEventById(eventId) {
+//     const results = await pool.query(
+//         `
+//         SELECT  
+//             e.eventId, 
+//             e.title, 
+//             e.url, 
+//             e.description, 
+//             e.venue, 
+//             e.startDateTime, 
+//             e.posterUrl, 
+//             z.eventTypeName, 
+//             JSON_ARRAYAGG(g.name) AS genres 
+//         FROM events e 
+//         LEFT JOIN eventtypes z
+//             ON 	e.eventTypeId = z.eventTypeId
+//         LEFT JOIN eventtags t 
+//             ON e.eventId = t.eventId 
+//         LEFT JOIN genres g 
+//             ON t.genreId = g.genreId 
+//         WHERE e.eventId = ? 
+//         GROUP BY 
+//             e.eventId, e.title, e.url, e.description, 
+//             e.venue, e.startDateTime, e.posterUrl, z.eventTypeName 
+//         `, [eventId]
+//     );
 
-    return results[0] || null;
-}
+//     return results[0] || null;
+// }
 
 // TODO: MERGE INTO ABOVE get event repeats
 async function getEventRepeatsById(eventId) {
@@ -214,9 +215,13 @@ async function getEventsByType(typeName) {
         `SELECT eventTypeId FROM eventtypes
 	    WHERE eventTypeName = ?`, typeName);
     
-    if(id[0].length==0) return;
-    id = id[0][0].eventTypeId;
+    if (id[0])
+        id = id[0].eventTypeId;
+    else {
+        return;
+    }
 
+    console.log(id);
     const results = await pool.query(
         `SELECT * FROM events
         WHERE eventTypeId = ?`, id);
@@ -260,7 +265,7 @@ module.exports = {
     fetchLiveEventsAndPopulate,
     fetchFilmsAndPopulate,
     // getEventById,
-    // getEventRepeatsById,
-    // getEventsByType,
-    // getEventsByGenre
+    getEventRepeatsById,
+    getEventsByType,
+    getEventsByGenre
 };
