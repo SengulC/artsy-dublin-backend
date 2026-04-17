@@ -3,6 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const postsController = require("../controllers/postsController");
+const {authenticate} = require("../middleware/auth");
 
 // get routes
 router.get('/', postsController.getAllPosts);
@@ -11,18 +12,18 @@ router.get('/user/:userId', postsController.getPostsByUser);
 router.get('/:postId', postsController.getPostById);
 
 // images now handled inside postsController via processUploadedImages
-router.post('/post/:eventAttendedId', postsController.createPost);
-router.post('/comment/:parentPostId', postsController.createComment);
+router.post('/post/:eventAttendedId', authenticate, postsController.createPost);
+router.post('/comment/:parentPostId', authenticate, postsController.createComment);
 
 // interactions
-router.post('/:postId/like', postsController.likeToggle);
-router.patch('/:postId', postsController.editPost);
-router.delete('/:postId', postsController.deletePost);
+router.post('/:postId/like', authenticate, postsController.likeToggle);
+router.patch('/:postId', authenticate, postsController.editPost);
+router.delete('/:postId', authenticate, postsController.deletePost);
 
 // attendance
-router.get("/:eventId/attend", postsController.getAttendanceStatus);
-router.post("/:eventId/attend", postsController.logEvent);
-router.delete("/:eventAttendId/attend", postsController.deleteAttendance);
-router.patch("/:eventAttendId/rating", postsController.updateRating);
+router.get("/:eventId/attend", authenticate, postsController.getAttendanceStatus);
+router.post("/:eventId/attend", authenticate, postsController.logEvent);
+router.delete("/:eventAttendId/attend", authenticate, postsController.deleteAttendance);
+router.patch("/:eventAttendId/rating", authenticate, postsController.updateRating);
 
 module.exports = router;

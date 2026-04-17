@@ -1,9 +1,11 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const chalk = require('chalk');
 const path = require("path");
 const fileUpload = require('express-fileupload');
+
 
 const app = express();
 const hostname = 'nodejs_2526-cs7025-group2';
@@ -18,6 +20,7 @@ app.use(morgan('dev'));
 
 // Helps the app read JSON data sent from the client
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public"))); //static path
 
 // must be before routes so req.files is available in controllers
@@ -31,14 +34,27 @@ app.use(fileUpload({
 // Establishing routes
 app.use(cors());
 
-const eventsRoute = require("./routes/events");
-app.use("/events", eventsRoute);
+const genresRouter = require("./routes/genres");
+app.use("/ad-genres", genresRouter);
 
-// const usersRoute = require("./routes/users")
-// app.use("/users", usersRoute);
+const eventsRoute = require("./routes/events");
+app.use("/ad-events", eventsRoute);
+
+const usersRoute = require("./routes/users")
+app.use("/ad-users", usersRoute);
+
+const authRoute = require("./routes/auth");
+app.use("/ad-auth", authRoute);
 
 const postsRoute = require("./routes/posts")
-app.use("/posts", postsRoute);
+app.use("/ad-posts", postsRoute);
+
+//the images user used can be visit public
+app.use("/ad-uploads", express.static("public/uploads"));
+
+// WIP
+const messagesRoute = require("./routes/messages");
+app.use("/ad-messages", messagesRoute);
 
 // Set EJS as the templating engine
 app.set('view engine', 'ejs');

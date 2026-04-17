@@ -10,6 +10,9 @@ Thumbs.db
 
 #this is done for fr certain files like env to stay private and safe
 
+#apikey for firebase
+serviceAccountKey.json
+
 #at this stage everyone can call their db smth else
 eventsPO.sql
 

@@ -1,11 +1,5 @@
 // this is where we handle all raw data relating to posts (including diary (event reviews) and comments)
 
-//**NOTE-CHANGES TO DATABASE STRUCTURE:
-// 1. three new columns added to the TABLE posts: likeCount, commentCount, eventAttendId (foreign key);
-// 2. one column deleted from eventattended: postId
-// 3. three columns added to the event table: reviewCount, saveCount, attendCount
-// 4. one column added to the eventattended table: isDleted
-
 const path = require('path');
 require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const mariadb = require('mariadb');
@@ -24,7 +18,8 @@ class postsModel {
 
             const results = await que.query(`
                 SELECT posts.postId, posts.content, posts.createdAt, users.username,
-                       events.eventId, events.title, eventattended.rating,
+                       events.eventId, events.title, events.venue, events.startDateTime, events.posterUrl,
+                       eventattended.rating,
                        posts.likeCount, posts.commentCount
                 FROM posts
                 JOIN posttype ON posts.type = posttype.typeId
@@ -55,7 +50,7 @@ class postsModel {
         try{
             que = await pool.getConnection();
             // removed camel naming and also removed duplicate eventId access
-            const [result] = await que.query(`
+            const result = await que.query(`
                 SELECT posts.postId, posts.eventId, posts.content, posts.createdAt,
                        users.username, events.title,
                        eventattended.rating, posts.likeCount, posts.commentCount
@@ -67,14 +62,26 @@ class postsModel {
                 WHERE posts.postId = ? AND posttype.typeName = 'post' AND posts.isDeleted = 0
             `, [postid]);
 
-            if(!result[0]) throw new Error('Post-not-found');
+            //add err handling (post-not-found) -> post is deleted / post type is comment
+            if(!result[0]){
+                const [check] = await que.query(`
+                    SELECT posts.isDeleted, posttype.typeName
+                    FROM posts
+                    JOIN posttype ON posts.type = posttype.typeId
+                    WHERE posts.postId = ?
+                `, [postid]);
+                if(!check) throw new Error('Post-not-found');
+                if(check.typeName !== 'post') throw new Error('Post-is-comment');
+                if(check.isDeleted) throw new Error('Post-is-deleted');
+                throw new Error('Post-not-found');
+            }
             const rootPostId = result[0].postId;
 
             //attach imageUrls to the "images" attribute of the post object
             await this._attachImages(que, result);
 
             //get all post comments (inclusing nested ones)
-            const [allComments] = await que.query(`
+            const allComments = await que.query(`
                 WITH RECURSIVE commentTree AS (
                 /* base case: get direct comments */
                 SELECT posts.postId, posts.postParentId, posts.content, posts.createdAt, users.userName, posts.likeCount, posts.commentCount
@@ -123,14 +130,14 @@ class postsModel {
     async _attachImages(que, posts) {
         const postIds = posts.map(p => p.postId);
         if (postIds.length) {
-            const [postImages] = await que.query(
+            const postimages = await que.query(
                 `SELECT imageUrl, postId 
-                FROM postImages 
+                FROM postimages 
                 WHERE postId IN (?)
                 `,[postIds]
             );
             posts.forEach(p => {
-                p.images = postImages.filter(i => i.postId === p.postId).map(i => i.imageUrl);
+                p.images = postimages.filter(i => i.postId === p.postId).map(i => i.imageUrl);
             });
         } else {
             posts.forEach(p => { p.images = []; });
@@ -142,7 +149,7 @@ class postsModel {
         let que;
         try {
             que = await pool.getConnection();
-            const [result] = await que.query(
+            const result = await que.query(
                 `SELECT eventAttendId, rating 
                 FROM eventattended 
                 WHERE userId = ? 
@@ -168,7 +175,7 @@ class postsModel {
             que = await pool.getConnection();
 
             // check if a record already exists (active or soft-deleted)
-            const [record] = await que.query(
+            const record = await que.query(
                 `SELECT eventAttendId, isDeleted 
                 FROM eventattended 
                 WHERE userId = ? 
@@ -199,7 +206,7 @@ class postsModel {
             }
 
             // no existing record: insert a new one
-            const [result] = await que.query(
+            const result = await que.query(
                 `INSERT INTO eventattended (userId, eventId, attendedAt) VALUES (?, ?, ?)`,
                 [userId, eventId, attendedAt]
             );
@@ -228,7 +235,7 @@ class postsModel {
         try {
             que = await pool.getConnection();
             //add a new entry to the TABLE posts
-            const [result] = await que.query(
+            const result = await que.query(
                 `INSERT INTO posts (userId, eventAttendId, eventId, content, type) VALUES (?, ?, ?, ?, 1)`,
                 [userId, eventAttendId, eventId, content]
             );
@@ -244,10 +251,10 @@ class postsModel {
             //get postId for the newly created post
             const postId = result.insertId;
 
-            //add imageUrls to the TABLE postImages
+            //add imageUrls to the TABLE postimages
             if (images.length) {
                 const postImageEntries = images.map(url => [postId, url]);
-                await que.query(`INSERT INTO postImages (postId, imageUrl) VALUES ?`, [postImageEntries]);
+                await que.query(`INSERT INTO postimages (postId, imageUrl) VALUES ?`, [postImageEntries]);
             }
             
             //for directing user to the page of newly created post
@@ -267,7 +274,7 @@ class postsModel {
         try {
             que = await pool.getConnection();
             //add a new entry to the TABLE posts
-            const [result] = await que.query(
+            const result = await que.query(
                 `INSERT INTO posts (userId, postParentId, content, type) VALUES (?, ?, ?, 2)`,
                 [userId, postParentId, content]
             );
@@ -282,10 +289,10 @@ class postsModel {
                 WHERE postId = ?`,[postParentId]
             );
 
-            //add imageUrls to the TABLE postImages
+            //add imageUrls to the TABLE postimages
             if (images.length) {
                 const postImageEntries = images.map(url => [postId, url]);
-                await que.query(`INSERT INTO postImages (postId, imageUrl) VALUES ?`, [postImageEntries]);
+                await que.query(`INSERT INTO postimages (postId, imageUrl) VALUES ?`, [postImageEntries]);
             }
             
             //return the postId, but better to let the user stay on current post-page
@@ -304,10 +311,10 @@ class postsModel {
         let que;
         try{
             que = await pool.getConnection();
-            const [result] = await que.query(
-                `SELECT postId 
-                FROM postLikes 
-                WHERE postId = ? 
+            const result = await que.query(
+                `SELECT postId
+                FROM postLikes
+                WHERE postId = ?
                 AND userId = ?
                 `,[likePostId, likeUserId]
             );
@@ -361,9 +368,9 @@ class postsModel {
         try {
             que = await pool.getConnection();
             //update rating in TABLE eventattended, filter by the same eventAttendId
-            const [result] = await que.query(
-                `UPDATE eventattended 
-                SET rating = ? 
+            const result = await que.query(
+                `UPDATE eventattended
+                SET rating = ?
                 WHERE eventAttendId = ?
                 `,[rating, eventAttendId]
             );
@@ -383,10 +390,10 @@ class postsModel {
         try {
             que = await pool.getConnection();
 
-            const [post] = await que.query(
-                `SELECT userId 
-                FROM posts 
-                WHERE postId = ? 
+            const post = await que.query(
+                `SELECT userId
+                FROM posts
+                WHERE postId = ?
                 AND isDeleted = 0`,
                 [postId]
             );
@@ -395,7 +402,7 @@ class postsModel {
             //make sure only the post owner can execute the code
             if (post[0].userId !== requestingUserId) throw new Error('Not-authorized');
 
-            const [result] = await que.query(
+            await que.query(
                 `UPDATE posts
                 SET content = ?
                 WHERE postId = ?
@@ -420,7 +427,7 @@ class postsModel {
             que = await pool.getConnection();
 
             // verify post exists and get its related data
-            const [post] = await que.query(
+            const post = await que.query(
                 `SELECT postId, postParentId, eventId, type, userId
                 FROM posts
                 WHERE postId = ?
@@ -433,7 +440,7 @@ class postsModel {
             if (post[0].userId !== requestingUserId) throw new Error('Not-authorized');
 
             // get all comments' postIds
-            const [comments] = await que.query(`
+            const comments = await que.query(`
                 WITH RECURSIVE postTree AS (
                     SELECT postId FROM posts WHERE postId = ?
                     UNION ALL
@@ -487,9 +494,9 @@ class postsModel {
         try {
             que = await pool.getConnection();
             // get eventId before deleting
-            const [attendance] = await que.query(
-                `SELECT eventId 
-                FROM eventattended 
+            const attendance = await que.query(
+                `SELECT eventId
+                FROM eventattended
                 WHERE eventAttendId = ?
                 `,[eventAttendId]
             );
@@ -499,9 +506,9 @@ class postsModel {
             const eventId = attendance[0].eventId;
 
             // soft-delete any posts linked to this attendance
-            const [linkedPosts] = await que.query(
-                `SELECT postId 
-                FROM posts 
+            const linkedPosts = await que.query(
+                `SELECT postId
+                FROM posts
                 WHERE eventAttendId = ?
                 `,[eventAttendId]
             );

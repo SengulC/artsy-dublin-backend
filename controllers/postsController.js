@@ -1,6 +1,4 @@
 // this is the controller for posts related stuff
-// TODO: userId replaced with req.session.userId (after we set up the user log-in function)
-
 
 //import models
 const postsModel = require("../models/posts.js");
@@ -55,6 +53,10 @@ class postsController{
         } catch (err) {
             if (err.message === 'Post-not-found') {
                 res.status(404).json({ error: 'Post not found' });
+            } else if (err.message === 'Post-is-deleted') {
+                res.status(410).json({ error: 'Post has been deleted' });
+            } else if (err.message === 'Post-is-comment') {
+                res.status(400).json({ error: 'The requested ID belongs to a comment, not a post' });
             } else {
                 console.error(err);
                 res.status(500).json({ error: err });
@@ -65,7 +67,7 @@ class postsController{
     //A5. get attendance status (run when an event page is loaded and a user is logged-in)
     async getAttendanceStatus(req, res){
         try {
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId;
             const attendanceStatus = await postsModel.getAttendanceStatus(userId, req.params.eventId);
             res.json(attendanceStatus); // null if not attended, otherwise return {eventAttendId, rating}
         } catch (err) {
@@ -80,7 +82,7 @@ class postsController{
         try {
             const eventId = req.params.eventId;
             const { attendedAt } = req.body;
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId; 
 
             const eventAttendId = await postsModel.logEvent(userId, eventId, attendedAt);
 
@@ -100,7 +102,7 @@ class postsController{
     async createPost(req, res){
         try {
             const eventAttendedId = req.params.eventAttendedId;
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId; 
             const { content, eventId } = req.body;
             const imageUrls = await processUploadedImages(req.files);
             const postId = await postsModel.createPost(userId, eventAttendedId, eventId, content, imageUrls);
@@ -120,7 +122,7 @@ class postsController{
     async createComment(req, res){
         try {
             const postParentId = req.params.parentPostId;
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId;
             const { content } = req.body;
             const imageUrls = await processUploadedImages(req.files);
             const postId = await postsModel.createComment(userId, postParentId, content, imageUrls);
@@ -139,7 +141,7 @@ class postsController{
     //B4. Toggle like/unlike a post
     async likeToggle(req, res){
         try {
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId; 
             const liked = await postsModel.likeToggle(req.params.postId, userId);
             res.json({ liked }); // true = liked, false = unliked
         } catch (err) {
@@ -168,7 +170,7 @@ class postsController{
     //C2. edit post content
     async editPost(req, res){
         try {
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId;
             const { content } = req.body;
             await postsModel.editPost(req.params.postId, userId, content);
             res.json({ message: 'Post updated' });
@@ -187,7 +189,7 @@ class postsController{
     //D1. soft-delete a post or comment (and its nested comments)
     async deletePost(req, res){
         try {
-            const userId = 1; // TODO: replace with req.session.userId
+            const userId = req.session.userId;
             await postsModel.deletePost(req.params.postId, userId);
             res.json({ message: 'Post deleted' });
         } catch (err) {
