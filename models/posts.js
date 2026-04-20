@@ -51,7 +51,7 @@ class postsModel {
             que = await pool.getConnection();
             // removed camel naming and also removed duplicate eventId access
             const result = await que.query(`
-                SELECT posts.postId, posts.eventId, posts.content, posts.createdAt,
+                SELECT posts.postId, posts.userId, posts.eventId, posts.content, posts.createdAt,
                        users.username, events.title,
                        eventattended.rating, posts.likeCount, posts.commentCount
                 FROM posts
