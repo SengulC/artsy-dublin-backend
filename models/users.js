@@ -41,9 +41,10 @@ class usersModel {
       // Step 1: Insert user
       const createdAt = new Date().toISOString().slice(0, 19).replace("T", " ");
       const QUERY = `INSERT INTO users (userName, avatarUrl, email, firebaseUid, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+      const fullAvatarUrl = `https://2526-cs7025-group2.scss.tcd.ie/${avatarUrl}`;
       const result = await connection.query(QUERY, [
         userName,
-        avatarUrl || null,
+        fullAvatarUrl || null,
         email,
         firebaseUid,
         /*bio ||*/ null,

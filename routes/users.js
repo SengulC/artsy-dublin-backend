@@ -18,6 +18,7 @@ router.get("/:userId/userinterests", usersController.getUserInterests);
 router.patch("/:username/bio", authenticate, usersController.editUserBio);
 
 // upload.single("avatar") processes the avatar file before hitting the controller
-router.post("/register", upload.single("avatar"), usersController.createUser);
+//router.post("/register", upload.single("avatar"), usersController.createUser); 
+router.post("/register", usersController.createUser); 
 
 module.exports = router;
