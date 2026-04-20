@@ -89,6 +89,19 @@ class postsController{
         }
     }
 
+    //A7. check which events in a given list the logged-in user has saved
+    async checkSaveStatus(req, res){
+        try {
+            const userId = req.session.userId;
+            const eventIds = req.query.eventIds.split(',').map(id => id.trim());
+            const savedEventIds = await postsModel.checkSaveStatus(eventIds, userId);
+            res.json(savedEventIds);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        }
+    }
+
 //B. post method
     //B1. log event attendance - remember to check attendance status before
     async logEvent(req, res){

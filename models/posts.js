@@ -185,6 +185,24 @@ class postsModel {
         }
     }
 
+    //A5. check which events in a given list the user has saved
+    async checkSaveStatus(eventIds, userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT eventId FROM eventsave WHERE userId = ? AND eventId IN (?)`,
+                [userId, eventIds]
+            );
+            return rows.map(r => r.eventId); //eventIds should be like (1, 2, 3, 4)
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
 //B. post methods
     //B1. log event attendance
     async logEvent(userId, eventId, attendedAt) {
