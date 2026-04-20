@@ -254,6 +254,19 @@ async function getEventsByGenre(genreName) {
     return results;
 }
 
+async function getPersonalizedEvents(userid) {
+    let [userGenres] = await pool.query(
+        `SELECT genreId FROM userinterests
+        WHERE userId = ?`, userid);
+
+    // loop thru users' interests and return events matching that genre.
+    let [userEvents] = await userGenres.map(async (id) => 
+        {
+            return await getEventsByGenreId(id.genreId);
+        } 
+    )
+    return userEvents;
+}
 
 // // helper function to check if an event already exists in the db via its title
 async function getEventByTitle(title) {
@@ -271,5 +284,6 @@ module.exports = {
     getEventById,
     getEventRepeatsById,
     getEventsByType,
-    getEventsByGenre
+    getEventsByGenre,
+    getPersonalizedEvents
 };

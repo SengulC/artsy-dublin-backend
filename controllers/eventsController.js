@@ -46,6 +46,14 @@ async function getEventsByGenre(req, res) {
     res.json(results); 
 }
 
+async function getPersonalizedEvents(req, res) {
+    const userid = req.params.userid;
+    let results = await model.getPersonalizedEvents(userid);
+    if (!results || results.length==0)
+        results = await model.get();
+    res.json(results); 
+}
+
 async function getEventById (req, res) {
     const id = req.params.eventid;
     const eventDetail = await model.getEventById(id);
@@ -66,5 +74,6 @@ module.exports = {
     updateByType,
     getEventById,
     getEventsByType,
-    getEventsByGenre
+    getEventsByGenre,
+    getPersonalizedEvents
 };

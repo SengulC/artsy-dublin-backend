@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const chalk = require('chalk');
 const http = require('http');
+const cron = require('node-cron');
 const { Server } = require('socket.io');
 const path = require("path");
 const fileUpload = require('express-fileupload');
@@ -47,6 +48,21 @@ app.use("/ad-genres", genresRouter);
 
 const eventsRoute = require("./routes/events");
 app.use("/ad-events", eventsRoute);
+
+// Monthly automated event update
+const eventsModel = require("./models/events"); 
+cron.schedule('0 0 1 */1 *', async () => { 
+// cron.schedule("*/1 * * * *", async () => { // every 1 min.s - FOR TESTING
+    console.log('It is the first day of the month. Updating events.');
+    try {
+      await eventsModel.fetchFilmsAndPopulate();
+      await eventsModel.fetchLiveEventsAndPopulate("Music");
+      await eventsModel.fetchLiveEventsAndPopulate("Arts-&-Theater");
+    }
+    catch (error) {
+      console.error('Task failed:', error);
+    }
+});
 
 const usersRoute = require("./routes/users")
 app.use("/ad-users", usersRoute);
