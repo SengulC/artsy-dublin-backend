@@ -18,9 +18,9 @@ class postsModel {
 
             const results = await que.query(`
                 SELECT posts.postId, posts.content, posts.createdAt, users.username,
-                       events.eventId, events.title, events.venue, events.startDateTime, events.posterUrl,
-                       eventattended.rating,
-                       posts.likeCount, posts.commentCount
+                    events.eventId, events.title, events.venue, events.startDateTime, events.posterUrl,
+                    eventattended.rating,
+                    posts.likeCount, posts.commentCount
                 FROM posts
                 JOIN posttype ON posts.type = posttype.typeId
                 JOIN users ON posts.userId = users.userId
@@ -51,8 +51,8 @@ class postsModel {
             que = await pool.getConnection();
             // removed camel naming and also removed duplicate eventId access
             const result = await que.query(`
-                SELECT posts.postId, posts.userId, posts.eventId, posts.content, posts.createdAt,
-                       users.username, events.title,
+                SELECT posts.postId, posts.eventId, posts.content, posts.createdAt,
+                       users.username, users.userId, events.title,
                        eventattended.rating, posts.likeCount, posts.commentCount
                 FROM posts
                 JOIN posttype ON posts.type = posttype.typeId
@@ -309,9 +309,11 @@ class postsModel {
             const postId = result.insertId;
 
             //add imageUrls to the TABLE postimages
-            if (images.length) {
-                const postImageEntries = images.map(url => [postId, url]);
-                await que.query(`INSERT INTO postimages (postId, imageUrl) VALUES ?`, [postImageEntries]);
+            if (images.length > 0) {
+                const placeholders = images.map(() => '(?,?)').join(','); // img -> (?, ?) , (?, ?)
+                const flatPostImgValues = images.flatMap(url => [postId, url]); 
+                await que.query(`INSERT INTO postimages (postId, imageUrl) VALUES ${placeholders}`, 
+                flatPostImgValues);
             }
             
             //for directing user to the page of newly created post
@@ -327,6 +329,7 @@ class postsModel {
 
     //B3. create comment
     async createComment(userId, postParentId, content, images){
+        console.log(images);
         let que;
         try {
             que = await pool.getConnection();
@@ -345,13 +348,14 @@ class postsModel {
                 SET commentCount = commentCount + 1, updatedAt = NOW() 
                 WHERE postId = ?`,[postParentId]
             );
-
-            //add imageUrls to the TABLE postimages
-            if (images.length) {
-                const postImageEntries = images.map(url => [postId, url]);
-                await que.query(`INSERT INTO postimages (postId, imageUrl) VALUES ?`, [postImageEntries]);
-            }
             
+            //add imageUrls to the TABLE postimages
+            if (images.length > 0) {
+                const placeholders = images.map(() => '(?,?)').join(','); // img -> (?, ?) , (?, ?)
+                const flatPostImgValues = images.flatMap(url => [postId, url]); 
+                await que.query(`INSERT INTO postimages (postId, imageUrl) VALUES ${placeholders}`, 
+                flatPostImgValues);
+            }
             //return the postId, but better to let the user stay on current post-page
             return postId;
 
@@ -370,7 +374,7 @@ class postsModel {
             que = await pool.getConnection();
             const result = await que.query(
                 `SELECT postId
-                FROM postLikes
+                FROM postlikes
                 WHERE postId = ?
                 AND userId = ?
                 `,[likePostId, likeUserId]
@@ -378,7 +382,7 @@ class postsModel {
 
             if (result.length) {
                 await que.query(
-                    `DELETE FROM postLikes 
+                    `DELETE FROM postlikes 
                     WHERE postId = ? 
                     AND userId = ?
                     `,[likePostId, likeUserId]
@@ -396,7 +400,7 @@ class postsModel {
 
             } else {
                 await que.query(
-                    `INSERT INTO postLikes (postId, userId) VALUES (?, ?)`,
+                    `INSERT INTO postlikes (postId, userId) VALUES (?, ?)`,
                     [likePostId, likeUserId]
                 );
 
@@ -417,6 +421,62 @@ class postsModel {
             if (que) que.release();
         }
     }
+
+     //B5. save an event
+     async saveToggle(saveEventId, saveUserId){
+        let que;
+        try{
+            que = await pool.getConnection();
+            const result = await que.query(
+                `SELECT eventId
+                FROM eventsave
+                WHERE eventId = ?
+                AND userId = ?
+                `,[saveEventId, saveUserId]
+            );
+
+            if (result.length) {
+                await que.query(
+                    `DELETE FROM eventsave 
+                    WHERE eventId = ? 
+                    AND userId = ?
+                    `,[saveEventId, saveUserId]
+                );
+
+                //decrement saveCount in TABLE events
+                await que.query(
+                    `UPDATE events 
+                    SET saveCount = saveCount - 1, updatedAt = NOW() 
+                    WHERE eventId = ?
+                    `,[saveEventId]
+                );
+
+                return false; //unsave
+
+            } else {
+                await que.query(
+                    `INSERT INTO eventsave (eventId, userId) VALUES (?, ?)`,
+                    [saveEventId, saveUserId]
+                );
+
+                //increment likeCount in TABLE posts
+                await que.query(
+                    `UPDATE events 
+                    SET saveCount = saveCount + 1, updatedAt = NOW() 
+                    WHERE eventId = ?
+                    `,[saveEventId]
+                );
+
+                return true; //unsave
+            }
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
 
 //C. patch methods
     //C1. update rating on an existing eventattended entry

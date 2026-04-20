@@ -67,7 +67,7 @@ class postsController{
     //A5. get attendance status (run when an event page is loaded and a user is logged-in)
     async getAttendanceStatus(req, res){
         try {
-            const userId = req.session.userId;
+            const userId = req.user.userId;
             const attendanceStatus = await postsModel.getAttendanceStatus(userId, req.params.eventId);
             res.json(attendanceStatus); // null if not attended, otherwise return {eventAttendId, rating}
         } catch (err) {
@@ -120,11 +120,11 @@ class postsController{
         try {
             const eventId = req.params.eventId;
             const { attendedAt } = req.body;
-            const userId = req.session.userId; 
+            const userId = req.user.userId; 
 
             const eventAttendId = await postsModel.logEvent(userId, eventId, attendedAt);
 
-            res.status(201).json({ eventAttendId }); //return id for frontend to use in next steps
+            res.status(201).json({ eventAttendId: Number(eventAttendId) }); //return id for frontend to use in next steps
 
         } catch (err) {
             if (err.message === 'already-attended') {
@@ -140,11 +140,11 @@ class postsController{
     async createPost(req, res){
         try {
             const eventAttendedId = req.params.eventAttendedId;
-            const userId = req.session.userId; 
+            const userId = req.user.userId; 
             const { content, eventId } = req.body;
             const imageUrls = await processUploadedImages(req.files);
             const postId = await postsModel.createPost(userId, eventAttendedId, eventId, content, imageUrls);
-            res.status(201).json({ postId });
+            res.status(201).json({ postId: Number(postId) });
         } catch (err) { //informative error msgs on image upload
      if (err.message.includes('Maximum amount of images') ||
         err.message.includes('invalid image format') ||
@@ -160,11 +160,12 @@ class postsController{
     async createComment(req, res){
         try {
             const postParentId = req.params.parentPostId;
-            const userId = req.session.userId;
+            const userId = req.user.userId;
             const { content } = req.body;
             const imageUrls = await processUploadedImages(req.files);
             const postId = await postsModel.createComment(userId, postParentId, content, imageUrls);
-            res.status(201).json({ postId });
+            res.status(201).json({ postId: Number(postId) });
+            
        } catch (err) { //informative error msgs on image upload
      if (err.message.includes('Maximum amount of images') ||
         err.message.includes('invalid image format') ||
@@ -180,7 +181,7 @@ class postsController{
     //B4. Toggle like/unlike a post
     async likeToggle(req, res){
         try {
-            const userId = req.session.userId; 
+            const userId = req.user.userId; 
             const liked = await postsModel.likeToggle(req.params.postId, userId);
             res.json({ liked }); // true = liked, false = unliked
         } catch (err) {
@@ -188,6 +189,19 @@ class postsController{
             res.status(500).json({ error: err });
         }
     }
+
+    //B5. Toggle save/unsave an event
+    async saveToggle(req, res){
+        try {
+            const userId = req.user.userId; 
+            const saved = await postsModel.saveToggle(req.params.eventId, userId);
+            res.json({ saved }); // true = saved, false = unsaved
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        }
+    }
+
 
 //C. patch methods
     //C1. update rating on an existing eventattended entry - need to get eventAttendId before
@@ -209,7 +223,7 @@ class postsController{
     //C2. edit post content
     async editPost(req, res){
         try {
-            const userId = req.session.userId;
+            const userId = req.user.userId;
             const { content } = req.body;
             await postsModel.editPost(req.params.postId, userId, content);
             res.json({ message: 'Post updated' });
@@ -228,7 +242,7 @@ class postsController{
     //D1. soft-delete a post or comment (and its nested comments)
     async deletePost(req, res){
         try {
-            const userId = req.session.userId;
+            const userId = req.user.userId;
             await postsModel.deletePost(req.params.postId, userId);
             res.json({ message: 'Post deleted' });
         } catch (err) {

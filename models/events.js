@@ -174,6 +174,9 @@ async function getEventById(eventId) {
             e.venue, 
             e.startDateTime, 
             e.posterUrl, 
+            e.reviewCount,
+            e.saveCount,
+            e.attendCount,
             z.eventTypeName, 
             JSON_ARRAYAGG(g.name) AS genres 
         FROM events e 

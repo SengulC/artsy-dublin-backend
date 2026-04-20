@@ -54,6 +54,7 @@ async function processUploadedImages(files) {
         // store relative URL for the database
      savedUrls.push('uploads/resized/' + resizedName);
     }
+    console.log(savedUrls);
  return savedUrls;
 
 }

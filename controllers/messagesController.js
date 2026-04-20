@@ -22,10 +22,13 @@ async function startConversation(req, res) {
      return res.status(400).json({  error: "You cannot message yourself..." }) ;
    }
 
-   const conversationId =  await messagesModel.findOrCreateConversation(
+   let conversationId =  await messagesModel.findOrCreateConversation(
      currentUser.userId,
      targetUserId,
    );
+
+   conversationId = Number(conversationId);
+   console.log(conversationId);
 
    res.json({ conversationId }) ;
   } catch  (err) {
@@ -37,17 +40,18 @@ async function startConversation(req, res) {
 
 // 2.Inbox -all conversations for the logged in user, newest go first
 async function getInbox(req, res) {
+  console.log("get inbox");
  try {
    const currentUser = await resolveDbUser(req, res);
+   console.log(currentUser);
    if (!currentUser)  return;
 
    const conversations =  await messagesModel.getConversationsForUser(currentUser.userId);
-   res.json(conversations);
+   res.json(conversations); //JSON.stringify?
   } catch (err)  {
    console.error ("getInbox Error:", err);
    res.status(500).json({ error: "Internal server error" });
   }
-
 }
 
 // 3.Open a conversation- returns all messages and marks them read

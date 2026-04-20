@@ -79,6 +79,7 @@ class authController {
       const decoded = await admin
         .auth()
         .verifySessionCookie(sessionCookie, true);
+      //res.json({sessionCookie});
 
       //get user information in the database through FirebaseUid
       const user = await usersModel.getUserByFirebaseUid(decoded.uid);
@@ -91,6 +92,37 @@ class authController {
         avatarUrl: user.avatarUrl,
       });
     } catch {
+      res.status(401).json({ error: "Invalid session" });
+    }
+  }
+
+  async authenticate(req, res, next) {
+    const sessionCookie = req.cookies.session;
+    if (!sessionCookie) return res.json("No session");
+    
+    try {
+      const decoded = await admin
+        .auth()
+        .verifySessionCookie(sessionCookie, true);
+      //console.log("cookie:", req.cookies.session);
+      //get user information in the database through FirebaseUid
+      const user = await usersModel.getUserByFirebaseUid(decoded.uid);
+      if (!user) return res.status(404).json({ error: "User not found" });
+      // res.json({
+      //   uid: decoded.uid,
+      //   email: decoded.email,
+      //   userId: user.userId,
+      //   userName: user.userName,
+      //   avatarUrl: user.avatarUrl,
+      // });
+      req.user={
+        uid: decoded.uid,
+        email: decoded.email,
+        ...user
+      }
+      next();
+    } catch {
+      console.error(error.code, error.message);
       res.status(401).json({ error: "Invalid session" });
     }
   }

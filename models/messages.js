@@ -15,13 +15,13 @@ class MessagesModel {
   async findOrCreateConversation(userAId, userBId) {
    const [a, b] = this._orderedPair(userAId, userBId) ;
    try {
-     const [existing] = await pool.query(
+     const existing = await pool.query(
        `SELECT conversationId FROM conversations WHERE userAId = ? AND userBId = ?`, [a,  b],
      );
 
      if (existing.length > 0) return existing[0].conversationId;
 
-     const [result] = await pool.query(
+     const result = await pool.query(
        `INSERT INTO conversations (userAId, userBId) VALUES (?, ?)`,
        [a, b],
      );
@@ -34,33 +34,33 @@ class MessagesModel {
 
   // 2. Each row includes the other user's info, last message preview, unread count
   async getConversationsForUser(userId) {
+    console.log(userId);
    try {
-     const [rows] = await pool.query(
-       `SELECT
-           c.conversationId,
-           c.lastMessageAt,
-           IF(c.userAId = ?, c.userBId, c.userAId) AS otherUserId,
-           u.userName  AS otherUserName,
-           u.avatarUrl  AS otherUserAvatar,
-           (SELECT content
-             FROM messages
-             WHERE conversationId = c.conversationId
-             ORDER BY createdAt DESC
-             LIMIT 1)  AS lastMessage,
-           (SELECT COUNT(*)
-              FROM messages
-             WHERE conversationId = c.conversationId
-               AND senderId != ?
-               AND isRead = 0) AS unreadCount
-         FROM conversations  c
-         JOIN users u ON u.userId = IF(c.userAId = ?, c.userBId, c.userAId)
-         WHERE c.userAId = ? OR c.userBId = ?
-         ORDER BY c.lastMessageAt DESC`,
-       [userId, userId, userId, userId, userId],
-      );
-
+    const rows = await pool.query(
+      `SELECT
+          c.conversationId,
+          c.lastMessageAt,
+          IF(c.userAId = ?, c.userBId, c.userAId) AS otherUserId,
+          u.userName AS otherUserName,
+          u.avatarUrl AS otherUserAvatar,
+          (SELECT content
+            FROM messages
+            WHERE conversationId = c.conversationId
+            ORDER BY createdAt DESC
+            LIMIT ?) AS lastMessage,
+          (SELECT CAST(COUNT(*) AS UNSIGNED)
+            FROM messages
+            WHERE conversationId = c.conversationId
+              AND senderId != ?
+              AND isRead = 0) AS unreadCount
+        FROM conversations c
+        JOIN users u ON u.userId = IF(c.userAId = ?, c.userBId, c.userAId)
+        WHERE c.userAId = ? OR c.userBId = ?
+        ORDER BY c.lastMessageAt DESC`,
+      [userId, userId, userId, userId, userId, userId],
+    );
      return rows;
-    } catch (err){
+    } catch (err) {
      console.error("getConversationsForUser Error:",  err);
      throw err;
     }
@@ -72,7 +72,7 @@ class MessagesModel {
      const allowed =await this.isParticipant(conversationId, requestingUserId);
      if (!allowed) return null;
 
-     const [messages]= await pool.query(
+     const messages= await pool.query(
        `SELECT m.messageId, m.senderId, m.content, m.isRead, m.createdAt,
            u.userName AS senderName, u.avatarUrl AS senderAvatar
            FROM messages m
@@ -94,7 +94,7 @@ class MessagesModel {
     try {
       await connection.beginTransaction();
 
-      const [result] = await connection.query(
+      const result = await connection.query(
         `INSERT INTO messages (conversationId, senderId, content) VALUES (?, ?, ?)`,
         [conversationId, senderId, content],
       );
@@ -154,7 +154,7 @@ class MessagesModel {
   // 7. Check whether a user is a participant in a conversation, auth helper
   async isParticipant(conversationId, userId) {
    try {
-     const [rows] = await pool.query(
+     const rows = await pool.query(
         `SELECT conversationId
            FROM conversations
          WHERE conversationId = ? AND (userAId = ? OR userBId = ?)`,
@@ -171,7 +171,7 @@ class MessagesModel {
   // 8. Return userAId and userBId so the socket handler knows who to notify
   async getConversationParticipants(conversationId) {
    try {
-     const [rows]= await pool.query(
+     const rows= await pool.query(
        `SELECT userAId, userBId FROM conversations WHERE conversationId = ?`,
        [conversationId],
       );
@@ -183,7 +183,5 @@ class MessagesModel {
   }
 
 }
-
-
 
 module.exports = new MessagesModel();
