@@ -10,6 +10,7 @@ router.get('/', postsController.getAllPosts);
 router.get('/event/:eventId', postsController.getPostsByEvent);
 router.get('/user/:userId', postsController.getPostsByUser);
 router.get('/:postId', postsController.getPostById);
+router.get('/likes/check', authenticate, postsController.checkLikeStatusByPostId);
 
 // images now handled inside postsController via processUploadedImages
 router.post('/post/:eventAttendedId', authenticate, postsController.createPost);

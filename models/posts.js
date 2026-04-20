@@ -167,6 +167,24 @@ class postsModel {
         }
     }
 
+    //A4. check which posts in a given list the user has liked
+    async checkLikeStatus(postIds, userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT postId FROM postlikes WHERE userId = ? AND postId IN (?)`,
+                [userId, postIds]
+            );//postIds should be like (1, 2, 3, 4)
+            return rows.map(r => r.postId);
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
 //B. post methods
     //B1. log event attendance
     async logEvent(userId, eventId, attendedAt) {
