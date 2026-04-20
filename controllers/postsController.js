@@ -102,6 +102,18 @@ class postsController{
         }
     }
 
+    //A8. get all saved events for a user
+    async getSavedEventsByUser(req, res){
+        try {
+            const userId = req.params.userId;
+            const savedEvents = await postsModel.getSavedEventsByUser(userId);
+            res.json(savedEvents);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        }
+    }
+
 //B. post method
     //B1. log event attendance - remember to check attendance status before
     async logEvent(req, res){

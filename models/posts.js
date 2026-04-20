@@ -203,6 +203,27 @@ class postsModel {
         }
     }
 
+    //A6. get all saved events for a user
+    async getSavedEventsByUser(userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT events.eventId, events.title, events.venue, events.startDateTime, events.posterUrl, events.url
+                FROM eventsave
+                JOIN events ON eventsave.eventId = events.eventId
+                WHERE eventsave.userId = ?`,
+                [userId]
+            );
+            return rows;
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
 //B. post methods
     //B1. log event attendance
     async logEvent(userId, eventId, attendedAt) {
