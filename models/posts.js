@@ -51,7 +51,7 @@ class postsModel {
             que = await pool.getConnection();
             // removed camel naming and also removed duplicate eventId access
             const result = await que.query(`
-                SELECT posts.postId, posts.eventId, posts.content, posts.createdAt,
+                SELECT posts.postId, posts.userId, posts.eventId, posts.content, posts.createdAt,
                        users.username, events.title,
                        eventattended.rating, posts.likeCount, posts.commentCount
                 FROM posts
@@ -164,6 +164,63 @@ class postsModel {
             throw err;
         } finally {
             if(que) que.release();
+        }
+    }
+
+    //A4. check which posts in a given list the user has liked
+    async checkLikeStatus(postIds, userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT postId FROM postlikes WHERE userId = ? AND postId IN (?)`,
+                [userId, postIds]
+            );//postIds should be like (1, 2, 3, 4)
+            return rows.map(r => r.postId);
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
+    //A5. check which events in a given list the user has saved
+    async checkSaveStatus(eventIds, userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT eventId FROM eventsave WHERE userId = ? AND eventId IN (?)`,
+                [userId, eventIds]
+            );
+            return rows.map(r => r.eventId); //eventIds should be like (1, 2, 3, 4)
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
+    //A6. get all saved events for a user
+    async getSavedEventsByUser(userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT events.eventId, events.title, events.venue, events.startDateTime, events.posterUrl, events.url
+                FROM eventsave
+                JOIN events ON eventsave.eventId = events.eventId
+                WHERE eventsave.userId = ?`,
+                [userId]
+            );
+            return rows;
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
         }
     }
 
