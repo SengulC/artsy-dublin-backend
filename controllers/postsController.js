@@ -79,7 +79,7 @@ class postsController{
     //A6. check which visible posts the logged-in user has liked
     async checkLikeStatusByPostId(req, res){
         try {
-            const userId = req.session.userId;
+            const userId = req.user.userId;
             const postIds = req.query.postIds.split(',').map(id => id.trim());
             const likedPostIds = await postsModel.checkLikeStatus(postIds, userId);
             res.json(likedPostIds);
@@ -92,7 +92,7 @@ class postsController{
     //A7. check which events in a given list the logged-in user has saved
     async checkSaveStatus(req, res){
         try {
-            const userId = req.session.userId;
+            const userId = req.user.userId;
             const eventIds = req.query.eventIds.split(',').map(id => id.trim());
             const savedEventIds = await postsModel.checkSaveStatus(eventIds, userId);
             res.json(savedEventIds);
@@ -108,6 +108,18 @@ class postsController{
             const userId = req.params.userId;
             const savedEvents = await postsModel.getSavedEventsByUser(userId);
             res.json(savedEvents);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        }
+    }
+
+    //A9. get all attended events for a user
+    async getAttendedEventsByUser(req, res){
+        try {
+            const userId = req.params.userId;
+            const attendedEvents = await postsModel.getAttendedEventsByUser(userId);
+            res.json(attendedEvents);
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: err });

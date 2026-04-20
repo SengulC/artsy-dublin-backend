@@ -13,6 +13,7 @@ router.get('/:postId', postsController.getPostById);
 router.get('/likes/check', authenticate, postsController.checkLikeStatusByPostId);
 router.get('/saves/check', authenticate, postsController.checkSaveStatus);
 router.get('/saves/user/:userId', postsController.getSavedEventsByUser);
+router.get('/attend/user/:userId', postsController.getAttendedEventsByUser);
 
 // images now handled inside postsController via processUploadedImages
 router.use(authenticate);

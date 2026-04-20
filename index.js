@@ -3,11 +3,14 @@ const morgan = require('morgan');
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const chalk = require('chalk');
+const http = require('http');
+const { Server } = require('socket.io');
 const path = require("path");
 const fileUpload = require('express-fileupload');
-
+const registerSocketHandlers = require('./sockets/messaging');
 
 const app = express();
+const server = http.createServer(app); // for socket
 const hostname = 'nodejs_2526-cs7025-group2';
 const port = 3000;
 const project_name = 'cs7025 group 2';
@@ -31,8 +34,13 @@ app.use(fileUpload({
 })
 );
 
+// Frontend proxy
+app.use(cors({
+  origin: "http://localhost:5173",       
+  credentials: true,
+}));
+
 // Establishing routes
-app.use(cors());
 
 const genresRouter = require("./routes/genres");
 app.use("/ad-genres", genresRouter);
@@ -64,8 +72,17 @@ app.get('/', (req, res) => {
   res.render('index', { eventsRoute });
 });
 
+// Attach Socket.IO to the http server, then register handlers
+const io = new Server(server, {                       
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  }
+});
+registerSocketHandlers(io);  
+
 // Start the server
-app.listen(port, hostname, () => {
+server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
 

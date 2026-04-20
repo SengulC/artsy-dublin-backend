@@ -224,6 +224,28 @@ class postsModel {
         }
     }
 
+    //A7. get all attended events for a user
+    async getAttendedEventsByUser(userId){
+        let que;
+        try {
+            que = await pool.getConnection();
+            const rows = await que.query(
+                `SELECT eventattended.eventId, eventattended.attendedAt, eventattended.rating, events.title, events.venue, events.startDateTime, events.posterUrl, events.url
+                FROM eventattended
+                JOIN events ON eventattended.eventId = events.eventId
+                WHERE eventattended.userId = ?
+                AND isDeleted = 0`,
+                [userId]
+            );
+            return rows;
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
 //B. post methods
     //B1. log event attendance
     async logEvent(userId, eventId, attendedAt) {

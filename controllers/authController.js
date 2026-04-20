@@ -121,7 +121,7 @@ class authController {
         ...user
       }
       next();
-    } catch {
+    } catch(error) {
       console.error(error.code, error.message);
       res.status(401).json({ error: "Invalid session" });
     }

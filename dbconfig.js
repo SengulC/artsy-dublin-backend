@@ -6,5 +6,6 @@ module.exports = {
     user: '2526-cs7025-group2',
     password: process.env.DB_PW,
     database: '2526-cs7025-group2_db',
-    connectionLimit: 5
+    connectionLimit: 5,
+    bigIntAsNumber: true // to fix bigint stuff
 }

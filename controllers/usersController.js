@@ -5,9 +5,12 @@
 //C. get user by username
 //D. get user Attended Events
 //E. get user Stats: metrics of their interactions
-//F. get user Journal, with different sorted options: newest/oldest/highest/lowest
+//F. get top user reviewers
+//G. get user Journal, with different sorted options: newest/oldest/highest/lowest
+//H. edit user bio
+//I. get user interests
 
-          console.log("user ctrl...");
+console.log("user ctrl...");
 
 const usersModel = require("../models/users.js");
 const { admin } = require("../utils/firebaseAdmin.js");
@@ -15,6 +18,9 @@ const { admin } = require("../utils/firebaseAdmin.js");
 class userController {
   //A. create a new user/register
   async createUser(req, res) {
+    console.log("createUser called");
+    console.log("req.body:", req.body);
+    console.log("req.file:", req.file);
     try {
       // const { userName, idToken, bio, gender, interests } = req.body;
       console.log(req.body);
@@ -30,9 +36,22 @@ class userController {
       const authEmail = decoded.email;
 
       //get avatar url
-      const avatarUrl = req.file
-        ? `${req.protocol}://${req.get("host")}/uploads/avatars/${req.file.filename}`
-        : null;
+      let avatarUrl = null;
+      if (req.files && req.files.avatar) {
+        const path = require('path');
+        const fs = require('fs');
+        const avatar = req.files.avatar;
+        const uploadDir = path.join(__dirname, "..", "public", "uploads", "avatars");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        const fileName = `avatar-${Date.now()}${path.extname(avatar.name)}`;
+        const savePath = path.join(uploadDir, fileName);
+        await avatar.mv(savePath);
+        avatarUrl = `http://localhost:3005/ad-uploads/avatars/${fileName}`;
+
+      }
+
 
       //get interest array
       const interestsArray = interests
@@ -66,7 +85,7 @@ class userController {
         return res.status(400).send("User already exists");
       }
       console.error("Register Error:", error);
-      res.status(500).send("Internal Server Error");
+      res.status(500).send(error.message || error.toString());
     }
   }
 
@@ -134,6 +153,35 @@ class userController {
       res.status(500).send("Internal Server Error");
     }
   }
-}
 
+
+  //H. edit user bio
+  async editUserBio(req, res) {
+    try {
+      const username = req.params.username;
+      const { content } = req.body;
+      const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
+      await usersModel.editUserBio(username, content, updatedAt);
+      res.json({ message: 'Bio updated' });
+    } catch (err) {
+      if (err.message === 'User-not-found') {
+        res.status(404).json({ error: 'User not found' });
+      } else {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
+  }
+
+  //I. get user interests
+  async getUserInterests(req, res) {
+    try {
+      const Interests = await usersModel.getUserInterests(req.params.userId);
+      res.json(Interests);
+    } catch (err) {
+      console.error("getUserInterests Error: ", err);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+}
 module.exports = new userController();

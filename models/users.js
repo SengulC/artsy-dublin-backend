@@ -6,7 +6,10 @@
 //D. get user info by firebaseUid (used by checkAuth)
 //E. get user Attended Events
 //F. get user Stats: metrics of their interactions
-//G. get user Journal, with different sorted options: newest/oldest/highest/lowest
+//G. get top reviewers
+//H. get user Journal, with different sorted options: newest/oldest/highest/lowest
+//I. edit user bio
+//J. get user interests
 
 const path = require('path');
 require('dotenv').config({path: path.join(__dirname, '..', '.env')});
@@ -214,6 +217,47 @@ class usersModel {
       throw err;
     }
   }
+
+  //I. edit user bio
+  async editUserBio(username, bioContent, updatedAt) {
+        let que;
+        try {
+            que = await pool.getConnection();
+
+            const newBio = await que.query(
+                `UPDATE users
+                SET bio = ?, updatedAt = ?
+                WHERE userName = ?
+                `,[bioContent, updatedAt, username]
+            );
+            
+            if (newBio.affectedRows === 0) throw new Error('User-not-found');
+
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
+    //J. get user interests
+    async getUserInterests(userId) {
+      try {
+        const results = await pool.query(
+        `SELECT g.genreId, g.name, g.eventTypeId
+          FROM userinterests ui
+          JOIN genres g ON ui.genreId = g.genreId
+          JOIN users u ON ui.userId = u.userId
+          WHERE u.userId = ?`,
+          [userId],
+        );
+      return results;
+      } catch (err) {
+        console.error("getUserInterests Error: ", err);
+        throw err;
+      }
+    }
 }
 
 module.exports = new usersModel();

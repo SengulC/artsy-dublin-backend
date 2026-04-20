@@ -34,7 +34,7 @@ class MessagesModel {
 
   // 2. Each row includes the other user's info, last message preview, unread count
   async getConversationsForUser(userId) {
-    console.log(userId);
+    // console.log('now in model ' + userId);
    try {
     const rows = await pool.query(
       `SELECT
@@ -48,7 +48,7 @@ class MessagesModel {
             WHERE conversationId = c.conversationId
             ORDER BY createdAt DESC
             LIMIT ?) AS lastMessage,
-          (SELECT CAST(COUNT(*) AS UNSIGNED)
+          (SELECT CAST(COUNT(*) AS SIGNED)
             FROM messages
             WHERE conversationId = c.conversationId
               AND senderId != ?
@@ -59,6 +59,9 @@ class MessagesModel {
         ORDER BY c.lastMessageAt DESC`,
       [userId, userId, userId, userId, userId, userId],
     );
+    // console.log('rows');
+        // console.log(rows);
+
      return rows;
     } catch (err) {
      console.error("getConversationsForUser Error:",  err);
