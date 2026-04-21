@@ -178,6 +178,26 @@ class userController {
     }
   }
 
+  // edit user interests
+  async editUserInterests(req, res) {
+    try {
+      const username = req.params.username;
+      const { interests } = req.body;
+      console.log('interests:')
+      console.log(interests);
+      const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
+      await usersModel.editUserInterests(username, interests, updatedAt);
+      res.json({ message: 'Interests updated' });
+    } catch (err) {
+      if (err.message === 'User-not-found') {
+        res.status(404).json({ error: 'User not found' });
+      } else {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
+  }
+
   //I. get user interests
   async getUserInterests(req, res) {
     try {

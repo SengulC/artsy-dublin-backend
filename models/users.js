@@ -242,6 +242,45 @@ class usersModel {
         }
     }
 
+    
+  // edit user interests
+  async editUserInterests(username, interests, updatedAt) {
+        let que;
+        try {
+            que = await pool.getConnection();
+
+            // delete all previous userid entries in userinterests table
+            const clearing = await que.query(
+              `DELETE FROM userinterests
+              WHERE userid = ?`, [username]
+            );
+            
+            // add the interests one by one
+            if (interests && interests.length > 0) {
+              const validGenres = await que.query(
+                `SELECT genreId FROM genres WHERE genreId IN (?)`,
+                [interests],
+              );
+
+            const validIds = validGenres.map((g) => g.genreId);
+            if (validIds.length > 0) {
+              const placeholders = validIds.map(() => '(?,?)').join(',');
+              const flatValues = validIds.flatMap((genreId) => [username, genreId]);
+              await que.query(
+                `INSERT INTO userinterests (userId, genreId) VALUES ${placeholders}`,
+                flatValues,
+              );
+            }
+            }
+            
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
+    }
+
     //J. get user interests
     async getUserInterests(userId) {
       try {

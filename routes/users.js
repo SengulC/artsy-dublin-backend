@@ -17,6 +17,9 @@ router.get("/:userId/userinterests", usersController.getUserInterests);
 //edit user bio
 router.patch("/:username/bio", authenticate, usersController.editUserBio);
 
+//edit user interests
+router.patch("/:username/interests", authenticate, usersController.editUserInterests);
+
 //edit user avatar
 router.patch("/avatar", authenticate, usersController.editUserAvatar);
 
