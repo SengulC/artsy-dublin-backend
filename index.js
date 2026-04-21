@@ -14,7 +14,6 @@ const app = express();
 const server = http.createServer(app); // for socket
 const hostname = 'nodejs_2526-cs7025-group2';
 const port = 3000;
-const project_name = 'cs7025 group 2';
 
 const mariadb = require('mariadb');
 const dbconfig = require('./dbconfig');
@@ -38,7 +37,7 @@ app.use(fileUpload({
 // Frontend proxy
 app.use(cors({
   origin: "https://artsy-dublin-website.vercel.app",  
-  // origin: "http://localhost:5173",
+  // origin: "http://localhost:5173", // ------------------------- UNCOMMENT ME FOR LOCAL TESTING
   credentials: true,
 }));
 
@@ -53,7 +52,6 @@ app.use("/ad-events", eventsRoute);
 // Monthly automated event update
 const eventsModel = require("./models/events"); 
 cron.schedule('0 0 1 */1 *', async () => { 
-// cron.schedule("*/1 * * * *", async () => { // every 1 min.s - FOR TESTING
     console.log('It is the first day of the month. Updating events.');
     try {
       await eventsModel.fetchFilmsAndPopulate();
@@ -93,7 +91,7 @@ app.get('/', (req, res) => {
 const io = new Server(server, {                       
   cors: {
     origin: "https://artsy-dublin-website.vercel.app", 
-    // origin: "http://localhost:5173",
+    // origin: "http://localhost:5173", // ------------------------- UNCOMMENT ME FOR LOCAL TESTING
     credentials: true,
   }
 });
