@@ -11,8 +11,6 @@
 //I. get user interests
 //J. edit user avatar
 
-console.log("user ctrl...");
-
 const usersModel = require("../models/users.js");
 const { admin } = require("../utils/firebaseAdmin.js");
 const { processUploadedImages } = require("./imagesController");
@@ -20,12 +18,8 @@ const { processUploadedImages } = require("./imagesController");
 class userController {
   //A. create a new user/register
   async createUser(req, res) {
-    console.log("createUser called");
-    console.log("req.body:", req.body);
-    console.log("req.file:", req.file);
     try {
       // const { userName, idToken, bio, gender, interests } = req.body;
-      console.log(req.body);
       const { idToken, userName, gender, birthday, interests } = req.body;
 
       if (!userName || !idToken) {
@@ -39,7 +33,6 @@ class userController {
 
       //get avatar url
       let avatarUrl = await processUploadedImages(req.files);
-      console.log(avatarUrl);
       // if (req.files && req.files.avatar) {
       //   const path = require('path');
       //   const fs = require('fs');
@@ -183,8 +176,6 @@ class userController {
     try {
       const username = req.params.username;
       const { interests } = req.body;
-      console.log('interests:')
-      console.log(interests);
       const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
       await usersModel.editUserInterests(username, interests, updatedAt);
       res.json({ message: 'Interests updated' });

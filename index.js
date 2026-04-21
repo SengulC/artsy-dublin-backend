@@ -37,8 +37,8 @@ app.use(fileUpload({
 
 // Frontend proxy
 app.use(cors({
-  // origin: "https://artsy-dublin-website.vercel.app",  
-  origin: "http://localhost:5173",
+  origin: "https://artsy-dublin-website.vercel.app",  
+  // origin: "http://localhost:5173",
   credentials: true,
 }));
 
@@ -92,8 +92,8 @@ app.get('/', (req, res) => {
 // Attach Socket.IO to the http server, then register handlers
 const io = new Server(server, {                       
   cors: {
-    // origin: "https://artsy-dublin-website.vercel.app", 
-    origin: "http://localhost:5173",
+    origin: "https://artsy-dublin-website.vercel.app", 
+    // origin: "http://localhost:5173",
     credentials: true,
   }
 });

@@ -49,8 +49,8 @@ async function getEventsByGenre(req, res) {
 async function getPersonalizedEvents(req, res) {
     const userid = req.params.userid;
     let results = await model.getPersonalizedEvents(userid);
-    if (!results || results.length==0)
-        results = await model.get();
+    // if (!results || results.length==0)
+    //     results = await model.get();
     res.json(results); 
 }
 

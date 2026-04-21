@@ -71,7 +71,6 @@ class authController {
     const sessionCookie = req.cookies.session;
     //check if exists
     if (!sessionCookie) {
-      console.log("not login");
       return res.json({ error: "No session" });}
 
     //asks Firebase to verify it's valid and not expired
@@ -104,17 +103,9 @@ class authController {
       const decoded = await admin
         .auth()
         .verifySessionCookie(sessionCookie, true);
-      //console.log("cookie:", req.cookies.session);
       //get user information in the database through FirebaseUid
       const user = await usersModel.getUserByFirebaseUid(decoded.uid);
       if (!user) return res.status(404).json({ error: "User not found" });
-      // res.json({
-      //   uid: decoded.uid,
-      //   email: decoded.email,
-      //   userId: user.userId,
-      //   userName: user.userName,
-      //   avatarUrl: user.avatarUrl,
-      // });
       req.user={
         uid: decoded.uid,
         email: decoded.email,
