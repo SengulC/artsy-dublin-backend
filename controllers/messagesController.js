@@ -5,19 +5,13 @@
 
 const messagesModel = require("../models/messages");
 const MAX_MESSAGE_LENGTH = 2000;
-  // console.log('msg controlller')
-
-
 // 1. Start or reopen conversation with another user
 async function startConversation(req, res) {
-  // console.log('starting convo')
   try {
    const currentUser = await resolveDbUser(req, res);
-  //  console.log('currentUser ' + currentUser);
    if (!currentUser) return ;
 
    const targetUserId =  parseInt(req.body.targetUserId, 10);
-  //  console.log('currentUser ' + currentUser);
 
    if (!targetUserId || isNaN(targetUserId)) {
      return res.status(400).json({ error: "targetUserId is required" });
@@ -33,7 +27,6 @@ async function startConversation(req, res) {
    );
 
    conversationId = Number(conversationId);
-  //  console.log('conversationId '+conversationId);
 
    res.json({ conversationId }) ;
   } catch  (err) {
@@ -45,17 +38,13 @@ async function startConversation(req, res) {
 
 // 2.Inbox -all conversations for the logged in user, newest go first
 async function getInbox(req, res) {
-  // console.log("get inbox");
  try {
    const currentUser = await resolveDbUser(req, res);
-  //  console.log(currentUser);
    if (!currentUser)  return;
 
    const conversations =  await messagesModel.getConversationsForUser(currentUser.userId);
-  //  console.log('conversations');
-      // console.log(conversations);
 
-   res.json(conversations); //JSON.stringify?
+   res.json(conversations);
   } 
   catch (err)  {
    console.error ("getInbox Error:", err);

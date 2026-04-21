@@ -2,9 +2,7 @@ const { admin } = require("../utils/firebaseAdmin");
 const usersModel = require("../models/users")
 
 async function authenticate(req, res, next) {
-  console.log("in auth");
   const sessionCookie = req.cookies.session;
-    console.log(sessionCookie);
   if (!sessionCookie) return res.json("No session");
 
   try {

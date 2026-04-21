@@ -4,8 +4,6 @@
 const multer = require("multer");
 const path = require("path");
 
-console.log("uploadinggg");
-
 // Define where and how to store uploaded files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

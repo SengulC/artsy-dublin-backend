@@ -357,7 +357,6 @@ class postsModel {
 
     //B3. create comment
     async createComment(userId, postParentId, content, images){
-        console.log(images);
         let que;
         try {
             que = await pool.getConnection();

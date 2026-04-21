@@ -7,8 +7,6 @@ const messagesModel = require("../models/messages");
 
 const MAX_MESSAGE_LENGTH = 2000;
 
-console.log("socketing")
-
 // Parse specific cookie value from the raw cookie header string
 function parseSessionCookie(cookieHeader) {
  if (!cookieHeader) return null;
@@ -23,7 +21,6 @@ function registerSocketHandlers(io) {
   // Auth middleware, runs before every connection is accepted
   io.use(async (socket, next) => {
    try {
-    console.log("handshake cookies:", socket.handshake.headers.cookie);
      const sessionCookie = parseSessionCookie(socket.handshake.headers.cookie);
      if (!sessionCookie) return next(new Error("No session cookie"));
 
@@ -46,7 +43,6 @@ function registerSocketHandlers(io) {
 
    socket.on("send_message", async ({ conversationId, content }) => {
      try {
-      console.log('sending msg')
        if (!content || typeof content !== "string" || content.trim().length === 0) {
          return socket.emit("message_error", { message: "Message cannot be empty" }) ;
         }

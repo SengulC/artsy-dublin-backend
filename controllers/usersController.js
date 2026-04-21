@@ -155,7 +155,6 @@ class userController {
   //H. edit user bio
   async editUserBio(req, res) {
     try {
-      //console.log("try to edit bio");
       const username = req.params.username;
       const { bio } = req.body;
       const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");

@@ -50,12 +50,10 @@ async function processUploadedImages(files) {
      // delete the temp file after img is resized
      fs.unlink(tempPath, (err) => {
          if (err) console.error('Failed to delete temp file:', err.message);
-         else console.log(tempPath + ' deleted');
         });
         // store relative URL for the database
      savedUrls.push('uploads/resized/' + resizedName);
     }
-    console.log(savedUrls);
  return savedUrls;
 
 }

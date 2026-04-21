@@ -111,12 +111,6 @@ async function main() {
   let conn;
   try {
     conn = await pool.getConnection();
-
-    // Query the table to get all rows
-    // const rows = await conn.query("SE  LECT * FROM genres");
-    // console.log("Table contents:");
-    // console.table(rows);bruh
-
   } catch (err) {
     console.error("Error:", err);
   } finally {
