@@ -34,12 +34,11 @@ class MessagesModel {
 
   // 2. Each row includes the other user's info, last message preview, unread count
   async getConversationsForUser(userId) {
-    // console.log('now in model ' + userId);
    try {
     const rows = await pool.query(
       `SELECT
           c.conversationId,
-          c.lastMessageAt,
+          UNIX_TIMESTAMP(c.lastMessageAt) * 1000 AS lastMessageAt,
           IF(c.userAId = ?, c.userBId, c.userAId) AS otherUserId,
           u.userName AS otherUserName,
           u.avatarUrl AS otherUserAvatar,
@@ -59,10 +58,11 @@ class MessagesModel {
         ORDER BY c.lastMessageAt DESC`,
       [userId, 1, userId, userId, userId, userId],
     );
-    // console.log('rows');
-        // console.log(rows);
 
-     return rows;
+     return rows.map(r => ({
+       ...r,
+       lastMessageAt: r.lastMessageAt ? new Date(Number(r.lastMessageAt)).toISOString() : null,
+     }));
     } catch (err) {
      console.error("getConversationsForUser Error:",  err);
      throw err;
@@ -76,7 +76,8 @@ class MessagesModel {
      if (!allowed) return null;
 
      const messages= await pool.query(
-       `SELECT m.messageId, m.senderId, m.content, m.isRead, m.createdAt,
+       `SELECT m.messageId, m.senderId, m.content, m.isRead,
+           UNIX_TIMESTAMP(m.createdAt) * 1000 AS createdAt,
            u.userName AS senderName, u.avatarUrl AS senderAvatar
            FROM messages m
            JOIN users u ON u.userId = m.senderId
@@ -84,7 +85,10 @@ class MessagesModel {
          ORDER BY m.createdAt ASC`,
        [conversationId] ,
      );
-     return messages;
+     return messages.map(m => ({
+       ...m,
+       createdAt: new Date(Number(m.createdAt)).toISOString(),
+     }));
     } catch (err){
      console.error("getMessagesByConversation Error:", err);
      throw err;
