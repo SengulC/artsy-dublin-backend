@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
+let sharp;
 const ALLOWED_MIME_TYPES =  ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5*1024*1024; 
 const MAX_IMAGES = 5;
@@ -43,6 +43,7 @@ async function processUploadedImages(files) {
      const resizedName = 'resized_' + uniqueName;
      const resizedPath = path.join(RESIZED_DIR, resizedName);
      await image.mv(tempPath); //move uploaded file to temp location
+     if (!sharp) sharp = require('sharp');
      await sharp(tempPath) //resize to 750px
          .resize(750)
          .toFile(resizedPath);

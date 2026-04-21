@@ -57,7 +57,7 @@ class MessagesModel {
         JOIN users u ON u.userId = IF(c.userAId = ?, c.userBId, c.userAId)
         WHERE c.userAId = ? OR c.userBId = ?
         ORDER BY c.lastMessageAt DESC`,
-      [userId, userId, userId, userId, userId, userId],
+      [userId, 1, userId, userId, userId, userId],
     );
     // console.log('rows');
         // console.log(rows);

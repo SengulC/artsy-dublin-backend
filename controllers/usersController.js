@@ -9,6 +9,7 @@
 //G. get user Journal, with different sorted options: newest/oldest/highest/lowest
 //H. edit user bio
 //I. get user interests
+//J. edit user avatar
 
 console.log("user ctrl...");
 
@@ -161,10 +162,11 @@ class userController {
   //H. edit user bio
   async editUserBio(req, res) {
     try {
+      //console.log("try to edit bio");
       const username = req.params.username;
-      const { content } = req.body;
+      const { bio } = req.body;
       const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
-      await usersModel.editUserBio(username, content, updatedAt);
+      await usersModel.editUserBio(username, bio, updatedAt);
       res.json({ message: 'Bio updated' });
     } catch (err) {
       if (err.message === 'User-not-found') {
@@ -186,5 +188,26 @@ class userController {
       res.status(500).send("Internal Server Error");
     }
   }
+
+  //J. edit user avatar
+  async editUserAvatar(req, res) {
+    try {
+      if (!req.files || !req.files.images) {
+        return res.status(400).json({ error: 'No avatar file provided' });
+      }
+      const avatarUrl = await processUploadedImages({ images: req.files.images });
+      if (!avatarUrl.length) return res.status(400).json({ error: 'Image processing failed' });
+      const fullAvatarUrl = `https://2526-cs7025-group2.scss.tcd.ie/${avatarUrl[0]}`;
+      await usersModel.editUserAvatar(req.user.userName, fullAvatarUrl);
+      res.json({ message: 'Avatar updated', fullAvatarUrl });
+    } catch (err) {
+      if (err.message === 'User-not-found') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      console.error('editUserAvatar Error:', err);
+      res.status(500).json({ error: err.message || 'Internal Server Error' });
+    }
+  }
+
 }
 module.exports = new userController();

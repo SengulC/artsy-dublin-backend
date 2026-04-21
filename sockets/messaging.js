@@ -31,7 +31,7 @@ function registerSocketHandlers(io) {
      const dbUser = await usersModel.getUserByFirebaseUid(decoded.uid);
      if (!dbUser) return next(new Error("User not found in database"));
 
-     socket.userId= dbUser.userId; // attach the mysql userId to the socket forever
+     socket.userId = Number(dbUser.userId); // attach the mysql userId to the socket forever
      next();
     } catch {
      next(new Error("Authentication failed"));
@@ -69,13 +69,14 @@ function registerSocketHandlers(io) {
        );
 
        const participants = await messagesModel.getConversationParticipants(conversationId);
-       const recipientId =
-         participants.userAId === userId ? participants.userBId : participants.userAId;
+       const recipientId = Number(
+         participants.userAId === userId ? participants.userBId : participants.userAId
+       );
 
        const messageData = {
-         messageId,
-         conversationId,
-         senderId: userId,
+         messageId: Number(messageId),
+         conversationId: Number(conversationId),
+         senderId: Number(userId),
          content: content.trim(),
          createdAt: new Date().toISOString(),
        };

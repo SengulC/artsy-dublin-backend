@@ -52,7 +52,7 @@ class postsModel {
             // removed camel naming and also removed duplicate eventId access
             const result = await que.query(`
                 SELECT posts.postId, posts.eventId, posts.content, posts.createdAt,
-                       users.username, users.userId, events.title,
+                       users.username, users.userId, users.avatarUrl, events.title,
                        eventattended.rating, posts.likeCount, posts.commentCount
                 FROM posts
                 JOIN posttype ON posts.type = posttype.typeId
@@ -84,7 +84,7 @@ class postsModel {
             const allComments = await que.query(`
                 WITH RECURSIVE commentTree AS (
                 /* base case: get direct comments */
-                SELECT posts.postId, posts.postParentId, posts.content, posts.createdAt, users.userName, posts.likeCount, posts.commentCount
+                SELECT posts.postId, posts.postParentId, posts.content, posts.createdAt, users.userName, users.userId, users.avatarUrl, posts.likeCount, posts.commentCount
                 FROM posts
                 JOIN users ON posts.userId = users.userId
                 WHERE posts.postParentId = ? AND posts.isDeleted = 0
@@ -93,7 +93,7 @@ class postsModel {
 
                 /* Recursive case: then get nested comments */
                 SELECT p.postId, p.postParentId, p.content,
-                p.createdAt, u.userName, p.likeCount, p.commentCount
+                p.createdAt, u.userName, u.userId, u.avatarUrl, p.likeCount, p.commentCount
                 FROM posts p
                 JOIN users u ON p.userId = u.userId
                 JOIN commentTree ct ON p.postParentId = ct.postId
@@ -319,12 +319,18 @@ class postsModel {
                 [userId, eventAttendId, eventId, content]
             );
 
-            //increment reviewCount in TABLE events
+            //increment reviewCount in TABLE events and users
             await que.query(
-                `UPDATE events 
-                SET reviewCount = reviewCount + 1, updatedAt = NOW() 
+                `UPDATE events
+                SET reviewCount = reviewCount + 1, updatedAt = NOW()
                 WHERE eventId = ?`,
                 [eventId]
+            );
+            await que.query(
+                `UPDATE users
+                SET reviewCount = reviewCount + 1
+                WHERE userId = ?`,
+                [userId]
             );
 
             //get postId for the newly created post
@@ -602,12 +608,18 @@ class postsModel {
 
             // alter counts
             if (post[0].type === 1) {
-                // diary post: decrement event's reviewCount
+                // diary post: decrement event's and user's reviewCount
                 await que.query(
-                    `UPDATE events 
-                    SET reviewCount = GREATEST(reviewCount - 1, 0), updatedAt = NOW() 
+                    `UPDATE events
+                    SET reviewCount = GREATEST(reviewCount - 1, 0), updatedAt = NOW()
                     WHERE eventId = ?
                     `,[post[0].eventId]
+                );
+                await que.query(
+                    `UPDATE users
+                    SET reviewCount = GREATEST(reviewCount - 1, 0)
+                    WHERE userId = ?
+                    `,[post[0].userId]
                 );
             } else if (post[0].postParentId) {
                 // comment: decrement direct parentPost's commentCount

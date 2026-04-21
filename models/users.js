@@ -233,7 +233,7 @@ class usersModel {
             );
             
             if (newBio.affectedRows === 0) throw new Error('User-not-found');
-
+            
         } catch (err) {
             console.error("Query Error: " + err);
             throw err;
@@ -258,6 +258,23 @@ class usersModel {
         console.error("getUserInterests Error: ", err);
         throw err;
       }
+    }
+    //K. update avatar URL
+    async editUserAvatar(username, avatarUrl) {
+        let que;
+        try {
+            que = await pool.getConnection();
+            const result = await que.query(
+                `UPDATE users SET avatarUrl = ?, updatedAt = NOW() WHERE userName = ?`,
+                [avatarUrl, username]
+            );
+            if (result.affectedRows === 0) throw new Error('User-not-found');
+        } catch (err) {
+            console.error("Query Error: " + err);
+            throw err;
+        } finally {
+            if (que) que.release();
+        }
     }
 }
 

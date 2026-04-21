@@ -17,6 +17,9 @@ router.get("/:userId/userinterests", usersController.getUserInterests);
 //edit user bio
 router.patch("/:username/bio", authenticate, usersController.editUserBio);
 
+//edit user avatar
+router.patch("/avatar", authenticate, usersController.editUserAvatar);
+
 // upload.single("avatar") processes the avatar file before hitting the controller
 //router.post("/register", upload.single("avatar"), usersController.createUser); 
 router.post("/register", usersController.createUser); 
